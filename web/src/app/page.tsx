@@ -25,14 +25,20 @@ export default function LandingPage() {
             <span className="text-xl font-bold text-[#1a1c1e]">Rumbo</span>
           </div>
           <div className="hidden md:flex items-center gap-6">
-            <a href="#features" className="text-sm text-[#4d4356] hover:text-[#6e00c7] transition-colors">
-              Funciones
-            </a>
-            <a href="#operators" className="text-sm text-[#4d4356] hover:text-[#6e00c7] transition-colors">
-              Operadores
-            </a>
+            <Link href="/pasajero" className="text-sm text-[#4d4356] hover:text-[#6e00c7] transition-colors">
+              Mapa
+            </Link>
+            <Link href="/favoritos" className="text-sm text-[#4d4356] hover:text-[#6e00c7] transition-colors">
+              Favoritos
+            </Link>
+            <Link href="/seguridad" className="text-sm text-[#4d4356] hover:text-[#6e00c7] transition-colors">
+              Seguridad
+            </Link>
             <Link href="/operador" className="text-sm text-[#4d4356] hover:text-[#6e00c7] transition-colors">
-              Dashboard
+              Operador
+            </Link>
+            <Link href="/conductor" className="text-sm text-[#4d4356] hover:text-[#6e00c7] transition-colors">
+              Conductor
             </Link>
           </div>
           <div className="flex items-center gap-2">
