@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Clock, ChevronRight, Bus, Star, Heart } from "lucide-react";
 import type { Route } from "@/lib/types";
 
@@ -8,6 +9,9 @@ interface RouteBottomSheetProps {
   onSelectRoute: (route: Route) => void;
   favorites: Set<string>;
   onToggleFavorite: (routeId: string) => void;
+  expanded: boolean;
+  onExpand: () => void;
+  onCollapse: () => void;
 }
 
 const STATUS_CONFIG = {
@@ -21,11 +25,50 @@ export default function RouteBottomSheet({
   onSelectRoute,
   favorites,
   onToggleFavorite,
+  expanded,
+  onExpand,
+  onCollapse,
 }: RouteBottomSheetProps) {
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const touchStartY = useRef(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!sheetRef.current) return;
+    const delta = touchStartY.current - e.touches[0].clientY;
+    // Limit live tracking to a reasonable range for visual feedback
+    const clampedDelta = Math.max(-60, Math.min(80, delta));
+    sheetRef.current.style.transform = `translateY(${-clampedDelta * 0.4}px)`;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!sheetRef.current) return;
+    sheetRef.current.style.transform = "";
+    const delta = touchStartY.current - e.changedTouches[0].clientY;
+    if (delta > 60) onExpand();
+    else if (delta < -40) onCollapse();
+  };
+
   return (
-    <div className="bg-white bottom-sheet shadow-2xl flex flex-col max-h-[65vh] md:max-h-full md:rounded-xl md:shadow-xl">
-      {/* Handle */}
-      <div className="flex justify-center pt-3 pb-2 md:hidden">
+    <div
+      ref={sheetRef}
+      className="bg-white bottom-sheet shadow-2xl flex flex-col md:max-h-full md:rounded-xl md:shadow-xl"
+      style={{
+        maxHeight: expanded ? "80vh" : "38vh",
+        transition: "max-height 0.3s ease-out",
+      }}
+    >
+      {/* Handle — touch target for swipe gesture */}
+      <div
+        className="flex justify-center pt-3 pb-2 md:hidden touch-none"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        aria-label="Deslizar hoja"
+      >
         <div className="w-10 h-1 rounded-full bg-[#cfc2d9]" />
       </div>
 
@@ -50,8 +93,7 @@ export default function RouteBottomSheet({
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
                   style={{
-                    background:
-                      route.status === "delayed" ? "#c66b00" : "#6e00c7",
+                    background: route.status === "delayed" ? "#c66b00" : "#6e00c7",
                   }}
                 >
                   {route.number}
@@ -68,6 +110,7 @@ export default function RouteBottomSheet({
                         onToggleFavorite(route.id);
                       }}
                       className="shrink-0 p-1 rounded-full hover:bg-[#eeeef0] transition-colors"
+                      aria-label={favorites.has(route.id) ? "Quitar de favoritos" : "Agregar a favoritos"}
                     >
                       <Heart
                         size={15}

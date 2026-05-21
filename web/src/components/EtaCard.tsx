@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState, useCallback, useEffect } from "react";
 import { Clock, Users, Star, X, Navigation } from "lucide-react";
 import type { Bus } from "@/lib/types";
 
@@ -34,10 +35,99 @@ const CAPACITY_ICON_COLOR = {
 };
 
 export default function EtaCard({ bus, onClose, onFollow }: EtaCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  // startRef: clientX/Y minus posRef at drag start — makes move math trivial
+  const startRef = useRef({ x: 0, y: 0 });
+  const posRef = useRef({ x: 0, y: 0 });
+  const dimsRef = useRef({ w: 0, h: 0 });
+  const dragging = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Stable values — no Math.random() in render
+  const rating = (parseInt(bus.id.replace("b", "")) % 5) + 1;
+  const updatedSecondsAgo = (parseInt(bus.id.replace("b", "")) % 8) + 2;
+
+  useEffect(() => {
+    if (cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      dimsRef.current = { w: rect.width, h: rect.height };
+    }
+  }, []);
+
+  const clamp = useCallback((x: number, y: number) => {
+    const { w, h } = dimsRef.current;
+    // Card natural position: top=72, left=12 (matches absolute positioning in pasajero/page.tsx)
+    const natLeft = 12;
+    const natTop = 72;
+    return {
+      x: Math.max(-natLeft, Math.min(x, window.innerWidth - natLeft - w)),
+      y: Math.max(60 - natTop, Math.min(y, window.innerHeight - natTop - h - 20)),
+    };
+  }, []);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    startRef.current = {
+      x: e.clientX - posRef.current.x,
+      y: e.clientY - posRef.current.y,
+    };
+    dragging.current = true;
+    setIsDragging(true);
+  }, []);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragging.current || !cardRef.current) return;
+    const { x, y } = clamp(
+      e.clientX - startRef.current.x,
+      e.clientY - startRef.current.y,
+    );
+    cardRef.current.style.transform = `translate(${x}px, ${y}px)`;
+  }, [clamp]);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    if (!dragging.current || !cardRef.current) return;
+    const { x, y } = clamp(
+      e.clientX - startRef.current.x,
+      e.clientY - startRef.current.y,
+    );
+    posRef.current = { x, y };
+    cardRef.current.style.transform = `translate(${x}px, ${y}px)`;
+    dragging.current = false;
+    setIsDragging(false);
+  }, [clamp]);
+
+  const handleDoubleClick = useCallback(() => {
+    posRef.current = { x: 0, y: 0 };
+    if (cardRef.current) {
+      cardRef.current.style.transform = "translate(0px, 0px)";
+    }
+  }, []);
+
   return (
-    <div className="bg-white rounded-xl shadow-xl border border-[#e8e8ea] overflow-hidden">
+    <div
+      ref={cardRef}
+      className="bg-white rounded-xl shadow-xl border border-[#e8e8ea] overflow-hidden"
+      style={{ userSelect: "none", touchAction: "none" }}
+    >
+      {/* Drag handle */}
+      <div
+        className="flex justify-center items-center pt-2.5 pb-1"
+        style={{ cursor: isDragging ? "grabbing" : "grab" }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onDoubleClick={handleDoubleClick}
+        aria-label="Arrastrar tarjeta"
+      >
+        <div className="flex gap-1">
+          <div className="w-1 h-1 rounded-full bg-[#cfc2d9]" />
+          <div className="w-1 h-1 rounded-full bg-[#cfc2d9]" />
+          <div className="w-1 h-1 rounded-full bg-[#cfc2d9]" />
+        </div>
+      </div>
+
       {/* Header */}
-      <div className="flex items-start justify-between p-4 pb-3">
+      <div className="flex items-start justify-between px-4 pb-3">
         <div className="flex items-center gap-3">
           <div
             className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-base shrink-0"
@@ -55,6 +145,7 @@ export default function EtaCard({ bus, onClose, onFollow }: EtaCardProps) {
         <button
           onClick={onClose}
           className="p-1.5 rounded-lg hover:bg-[#eeeef0] transition-colors"
+          aria-label="Cerrar"
         >
           <X size={16} className="text-[#4d4356]" />
         </button>
@@ -78,7 +169,7 @@ export default function EtaCard({ bus, onClose, onFollow }: EtaCardProps) {
         </div>
         <p className="text-xs text-[#7e7388] mt-1 flex items-center gap-1">
           <Clock size={11} />
-          Actualizado hace {Math.floor(Math.random() * 8) + 2}s · {bus.speed} km/h
+          Actualizado hace {updatedSecondsAgo}s · {bus.speed} km/h
         </p>
       </div>
 
@@ -91,7 +182,7 @@ export default function EtaCard({ bus, onClose, onFollow }: EtaCardProps) {
         <div className="w-px bg-[#e8e8ea]" />
         <div className="flex items-center gap-1.5 text-xs text-[#4d4356]">
           <Star size={13} className="fill-[#f59e0b] text-[#f59e0b]" />
-          4.{Math.floor(Math.random() * 5) + 1} · 124 viajes
+          4.{rating} · 124 viajes
         </div>
       </div>
 
