@@ -101,7 +101,7 @@ export default function OperadorPage() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className="flex-1 py-3 text-sm font-semibold capitalize transition-colors"
+            className="flex-1 py-2.5 text-xs font-semibold capitalize transition-colors md:text-sm md:py-3"
             style={{
               color: activeTab === tab ? "#6e00c7" : "#7e7388",
               borderBottom: activeTab === tab ? "2px solid #6e00c7" : "2px solid transparent",
@@ -125,6 +125,7 @@ export default function OperadorPage() {
               </p>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {FLEET_DATA.map((bus) => {
               const st = STATUS_CONFIG[bus.status as BusStatus];
               return (
@@ -147,7 +148,7 @@ export default function OperadorPage() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-2 mb-3">
                     <div className="text-center bg-[#f3f3f6] rounded-lg p-2">
                       <p className="text-base font-bold text-[#1a1c1e]">{bus.speed}</p>
                       <p className="text-[10px] text-[#7e7388]">km/h</p>
@@ -168,9 +169,17 @@ export default function OperadorPage() {
                       <p className="text-[10px] text-[#7e7388]">batería</p>
                     </div>
                   </div>
+                  <Link
+                    href="/pasajero"
+                    className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg border border-[#cfc2d9] text-xs font-semibold text-[#6e00c7] hover:bg-[#f9f7ff] transition-colors"
+                  >
+                    <MapPin size={12} />
+                    Ver en mapa
+                  </Link>
                 </div>
               );
             })}
+            </div>
           </>
         )}
 
@@ -267,7 +276,7 @@ export default function OperadorPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <div className="bg-white rounded-xl border border-[#e8e8ea] p-4">
                 <p className="text-xs text-[#7e7388] mb-1">Ingreso estimado hoy</p>
                 <p className="text-xl font-bold text-[#1a1c1e]">₡312,750</p>

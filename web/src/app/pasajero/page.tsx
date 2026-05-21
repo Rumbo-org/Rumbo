@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import EtaCard from "@/components/EtaCard";
 import RouteBottomSheet from "@/components/RouteBottomSheet";
+import AnnouncementBar from "@/components/AnnouncementBar";
 import type { Bus, LatLng } from "@/lib/types";
 import { SAN_JOSE_CENTER } from "@/lib/mockData";
 import { useRoutes } from "@/hooks/useRoutes";
@@ -163,6 +164,19 @@ export default function PasajeroPage() {
         >
           <Shield size={24} className="text-white" />
         </button>
+      </div>
+
+      {/* ── ANNOUNCEMENT BAR ── */}
+      <div
+        className="absolute left-0 right-0 z-10"
+        style={{
+          bottom: "calc(38vh + 10px)",
+          opacity: sheetExpanded ? 0 : 1,
+          pointerEvents: sheetExpanded ? "none" : "auto",
+          transition: "opacity 0.25s ease",
+        }}
+      >
+        <AnnouncementBar />
       </div>
 
       {/* ── BOTTOM SHEET ── */}
