@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Rumbo Design System  —  Tailwind v4 theme tokens
+   Primary: Electric Violet #8f00ff  (per DESIGN.md philosophy)
+   ============================================================ */
+@theme {
+  /* Brand */
+  --color-primary: #8f00ff;
+  --color-primary-container: #6e00c7;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #efddff;
+  --color-primary-fixed: #efdbff;
+  --color-primary-fixed-dim: #dab9ff;
+  --color-inverse-primary: #dab9ff;
+  --color-surface-tint: #8600ef;
+
+  /* Secondary (Command Red signal) */
+  --color-secondary: #bc0100;
+  --color-secondary-container: #eb0000;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #fffbff;
+
+  /* Tertiary (Safety Teal) */
+  --color-tertiary: #00584b;
+  --color-tertiary-container: #007363;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #69fbdf;
+
+  /* Surfaces */
+  --color-surface: #f9f9fc;
+  --color-surface-dim: #dadadc;
+  --color-surface-bright: #f9f9fc;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f3f3f6;
+  --color-surface-container: #eeeef0;
+  --color-surface-container-high: #e8e8ea;
+  --color-surface-container-highest: #e2e2e5;
+  --color-surface-variant: #e2e2e5;
+  --color-surface-map: #f8f9fa;
+  --color-on-surface: #1a1c1e;
+  --color-on-surface-variant: #4d4356;
+  --color-inverse-surface: #2f3133;
+  --color-inverse-on-surface: #f0f0f3;
+  --color-background: #f9f9fc;
+  --color-on-background: #1a1c1e;
+
+  /* Outlines */
+  --color-outline: #7e7388;
+  --color-outline-variant: #cfc2d9;
+
+  /* Error */
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  /* Functional status */
+  --color-status-on-time: #2e7d32;
+  --color-status-delayed: #f9a825;
+  --color-status-stale: #757575;
+  --color-safety-emergency: #d32f2f;
+  --color-rating-active: #ffb300;
+
+  /* Typography (Inter loaded via next/font) */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --text-eta-display: 28px;
+  --text-eta-display--line-height: 32px;
+  --text-eta-display--letter-spacing: -0.03em;
+  --text-eta-display--font-weight: 800;
+
+  --text-headline-lg: 32px;
+  --text-headline-lg--line-height: 40px;
+  --text-headline-lg--letter-spacing: -0.02em;
+  --text-headline-lg--font-weight: 700;
+
+  --text-headline-md: 20px;
+  --text-headline-md--line-height: 28px;
+  --text-headline-md--font-weight: 600;
+
+  --text-label-lg: 14px;
+  --text-label-lg--line-height: 20px;
+  --text-label-lg--letter-spacing: 0.05em;
+  --text-label-lg--font-weight: 600;
+
+  --text-label-md: 12px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--font-weight: 500;
+
+  /* Radii (rounded geometry, 0.5rem base) */
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  /* Spacing helper (44px min tap target) */
+  --spacing-tap: 44px;
+}
+
+/* Base */
+body {
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Map dot-grid fallback canvas */
+.map-grid {
+  background-color: var(--color-surface-map);
+  background-image: radial-gradient(circle at 2px 2px, #e2e2e5 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Live "transmitting" pulse for the driver action button */
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7); }
+  70% { box-shadow: 0 0 0 12px rgba(211, 47, 47, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); }
+}
+.pulse-red { animation: pulse-red 1.8s infinite; }
