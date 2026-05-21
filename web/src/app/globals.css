@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #6e00c7;
+  --color-primary-container: #8f00ff;
+  --color-on-primary: #ffffff;
+  --color-primary-dim: #dab9ff;
+
+  --color-secondary: #bc0100;
+  --color-secondary-container: #eb0000;
+  --color-on-secondary: #ffffff;
+
+  --color-tertiary: #00584b;
+  --color-tertiary-container: #007363;
+  --color-on-tertiary: #ffffff;
+
+  --color-surface: #f9f9fc;
+  --color-surface-low: #f3f3f6;
+  --color-surface-container: #eeeef0;
+  --color-surface-high: #e8e8ea;
+  --color-surface-highest: #e2e2e5;
+  --color-on-surface: #1a1c1e;
+  --color-on-surface-variant: #4d4356;
+
+  --color-outline: #7e7388;
+  --color-outline-variant: #cfc2d9;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+
+  --color-status-on-time: #1b6b43;
+  --color-status-delayed: #c66b00;
+  --color-status-stale: #757575;
+
+  --color-sos: #eb0000;
+
+  --font-sans: "Inter", sans-serif;
+
+  --radius-sm: 0.25rem;
+  --radius-DEFAULT: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Bus marker pulse animation */
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+.pulse-ring {
+  animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* SOS button pulse */
+@keyframes sos-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(235, 0, 0, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(235, 0, 0, 0); }
+}
+
+.sos-pulse {
+  animation: sos-pulse 2s ease-in-out infinite;
+}
+
+/* Bottom sheet */
+.bottom-sheet {
+  border-radius: 1rem 1rem 0 0;
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  transition: all 0.2s ease;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant);
+  border-radius: 9999px;
+}
