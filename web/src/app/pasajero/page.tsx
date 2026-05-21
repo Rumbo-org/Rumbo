@@ -12,36 +12,36 @@ import {
   X,
   Bell,
   Navigation,
+  LogOut,
 } from "lucide-react";
 import EtaCard from "@/components/EtaCard";
 import RouteBottomSheet from "@/components/RouteBottomSheet";
-import type { Bus, Route, LatLng } from "@/lib/types";
-import { MOCK_ROUTES, SAN_JOSE_CENTER } from "@/lib/mockData";
+import type { Bus, LatLng } from "@/lib/types";
+import { SAN_JOSE_CENTER } from "@/lib/mockData";
+import { useRoutes } from "@/hooks/useRoutes";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase/client";
 
-// Dynamic import – Map uses browser APIs
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
 export default function PasajeroPage() {
+  const { routes, loading: loadingRoutes } = useRoutes();
+  const { user, profile } = useAuth();
+
   const [selectedBus, setSelectedBus] = useState<Bus | null>(null);
   const [userPosition, setUserPosition] = useState<LatLng | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [favorites, setFavorites] = useState<Set<string>>(new Set(["r200"]));
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [showSOS, setShowSOS] = useState(false);
   const [sheetExpanded, setSheetExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
 
-  // Request geolocation on mount
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) { setUserPosition(SAN_JOSE_CENTER); return; }
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-      },
-      () => {
-        // Fall back to San José center for demo
-        setUserPosition(SAN_JOSE_CENTER);
-      }
+      (pos) => setUserPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => setUserPosition(SAN_JOSE_CENTER)
     );
   }, []);
 
@@ -52,34 +52,33 @@ export default function PasajeroPage() {
 
   const handleFollowBus = useCallback(() => {
     if (!selectedBus) return;
-    setNotification(`Siguiendo unidad ${selectedBus.routeNumber}`);
+    setNotification(`Siguiendo ${selectedBus.routeNumber}`);
     setTimeout(() => setNotification(null), 3000);
   }, [selectedBus]);
-
-  const handleSelectRoute = useCallback((route: Route) => {
-    setNotification(`Ruta ${route.number} seleccionada`);
-    setTimeout(() => setNotification(null), 3000);
-  }, []);
 
   const toggleFavorite = useCallback((routeId: string) => {
     setFavorites((prev) => {
       const next = new Set(prev);
-      if (next.has(routeId)) {
-        next.delete(routeId);
-      } else {
-        next.add(routeId);
-      }
+      next.has(routeId) ? next.delete(routeId) : next.add(routeId);
       return next;
     });
   }, []);
 
-  const filteredRoutes = MOCK_ROUTES.filter(
+  const handleLogout = useCallback(async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  }, []);
+
+  const filteredRoutes = routes.filter(
     (r) =>
       searchQuery === "" ||
-      r.number.includes(searchQuery) ||
+      r.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.destination.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const displayName = profile?.full_name ?? user?.email?.split("@")[0] ?? "Pasajero";
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <div className="h-full relative flex flex-col overflow-hidden bg-black">
@@ -89,12 +88,12 @@ export default function PasajeroPage() {
           selectedBusId={selectedBus?.id ?? null}
           onBusSelect={handleBusSelect}
           userPosition={userPosition}
+          routes={routes}
         />
       </div>
 
       {/* ── TOP BAR ── */}
       <div className="relative z-10 flex items-center gap-2 p-3 pt-safe">
-        {/* Menu */}
         <button
           onClick={() => setMenuOpen(true)}
           className="w-11 h-11 bg-white rounded-xl shadow-md flex items-center justify-center shrink-0"
@@ -102,7 +101,6 @@ export default function PasajeroPage() {
           <Menu size={20} className="text-[#1a1c1e]" />
         </button>
 
-        {/* Search */}
         <div className="flex-1 bg-white rounded-xl shadow-md flex items-center gap-2 px-3 h-11">
           <Search size={16} className="text-[#7e7388] shrink-0" />
           <input
@@ -119,14 +117,13 @@ export default function PasajeroPage() {
           )}
         </div>
 
-        {/* Notifications */}
         <button className="w-11 h-11 bg-white rounded-xl shadow-md flex items-center justify-center shrink-0 relative">
           <Bell size={18} className="text-[#1a1c1e]" />
           <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#bc0100]" />
         </button>
       </div>
 
-      {/* ── TOAST NOTIFICATION ── */}
+      {/* ── TOAST ── */}
       {notification && (
         <div className="relative z-20 mx-3 mt-2">
           <div className="bg-[#1a1c1e] text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2">
@@ -136,7 +133,7 @@ export default function PasajeroPage() {
         </div>
       )}
 
-      {/* ── ETA CARD (selected bus) ── */}
+      {/* ── ETA CARD ── */}
       {selectedBus && (
         <div className="relative z-10 mx-3 mt-2">
           <EtaCard
@@ -147,17 +144,17 @@ export default function PasajeroPage() {
         </div>
       )}
 
-      {/* ── LOCATE ME BUTTON ── */}
+      {/* ── LOCATE ME ── */}
       <div className="absolute right-3 z-10" style={{ bottom: sheetExpanded ? "65vh" : "260px" }}>
         <button
           onClick={() => setUserPosition(SAN_JOSE_CENTER)}
-          className="w-11 h-11 bg-white rounded-xl shadow-md flex items-center justify-center transition-smooth"
+          className="w-11 h-11 bg-white rounded-xl shadow-md flex items-center justify-center"
         >
           <Locate size={18} className="text-[#6e00c7]" />
         </button>
       </div>
 
-      {/* ── SOS BUTTON ── */}
+      {/* ── SOS ── */}
       <div className="absolute left-3 z-20" style={{ bottom: sheetExpanded ? "65vh" : "260px" }}>
         <button
           onClick={() => setShowSOS(true)}
@@ -173,12 +170,22 @@ export default function PasajeroPage() {
         className="absolute bottom-0 left-0 right-0 z-10 transition-smooth"
         onClick={() => !sheetExpanded && setSheetExpanded(true)}
       >
-        <RouteBottomSheet
-          routes={filteredRoutes}
-          onSelectRoute={handleSelectRoute}
-          favorites={favorites}
-          onToggleFavorite={toggleFavorite}
-        />
+        {loadingRoutes ? (
+          <div className="bg-white bottom-sheet shadow-2xl p-6 flex items-center justify-center gap-3">
+            <div className="w-5 h-5 rounded-full border-2 border-[#6e00c7] border-t-transparent animate-spin" />
+            <p className="text-sm text-[#4d4356]">Cargando rutas...</p>
+          </div>
+        ) : (
+          <RouteBottomSheet
+            routes={filteredRoutes}
+            onSelectRoute={(route) => {
+              setNotification(`Ruta ${route.number} seleccionada`);
+              setTimeout(() => setNotification(null), 3000);
+            }}
+            favorites={favorites}
+            onToggleFavorite={toggleFavorite}
+          />
+        )}
       </div>
 
       {/* ── SLIDE-IN MENU ── */}
@@ -189,21 +196,22 @@ export default function PasajeroPage() {
             onClick={() => setMenuOpen(false)}
           />
           <div className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl flex flex-col">
-            {/* Profile header */}
             <div className="p-5 pt-8" style={{ background: "#6e00c7" }}>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-lg">
-                  S
+                  {initials}
                 </div>
                 <div>
-                  <p className="text-white font-semibold">Sebastián</p>
-                  <p className="text-white/70 text-xs">Pasajero verificado</p>
+                  <p className="text-white font-semibold">{displayName}</p>
+                  <p className="text-white/70 text-xs">
+                    {user ? profile?.role ?? "pasajero" : "Sin sesión"}
+                  </p>
                 </div>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <div className="bg-white/10 rounded-lg p-2 text-center">
-                  <p className="text-white font-bold text-lg">47</p>
-                  <p className="text-white/70 text-xs">viajes</p>
+                  <p className="text-white font-bold text-lg">{routes.length}</p>
+                  <p className="text-white/70 text-xs">rutas activas</p>
                 </div>
                 <div className="bg-white/10 rounded-lg p-2 text-center">
                   <p className="text-white font-bold text-lg">{favorites.size}</p>
@@ -232,21 +240,23 @@ export default function PasajeroPage() {
               ))}
             </nav>
 
-            <div className="p-4 border-t border-[#e8e8ea]">
-              <div className="flex gap-2">
-                <Link
-                  href="/conductor"
-                  className="flex-1 text-center py-2.5 rounded-lg border border-[#cfc2d9] text-xs font-semibold text-[#6e00c7] hover:bg-[#f9f7ff] transition-colors"
+            <div className="p-4 border-t border-[#e8e8ea] space-y-2">
+              {user ? (
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-[#cfc2d9] text-xs font-semibold text-[#4d4356] hover:bg-[#f9f7ff] transition-colors"
                 >
-                  Modo Conductor
-                </Link>
+                  <LogOut size={14} />
+                  Cerrar sesión
+                </button>
+              ) : (
                 <Link
-                  href="/"
-                  className="flex-1 text-center py-2.5 rounded-lg bg-[#eeeef0] text-xs font-semibold text-[#4d4356] hover:bg-[#e2e2e5] transition-colors"
+                  href="/login"
+                  className="block text-center py-2.5 rounded-lg border border-[#6e00c7] text-xs font-semibold text-[#6e00c7] hover:bg-[#f9f7ff] transition-colors"
                 >
-                  Salir
+                  Iniciar sesión
                 </Link>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -274,7 +284,6 @@ export default function PasajeroPage() {
             <p className="text-sm text-center text-[#4d4356] mb-6">
               Se enviará tu ubicación GPS a tus contactos de emergencia.
             </p>
-
             <button
               className="w-full py-4 rounded-xl text-white font-bold text-base mb-3 transition-opacity active:opacity-80"
               style={{ background: "#eb0000" }}
